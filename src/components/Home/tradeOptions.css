@@ -1,0 +1,36 @@
+h1 {
+  font-family: "Work Sans";
+  text-align: center;
+  /* margin-bottom: 40px; */
+}
+
+.timer-wrapper {
+  display: flex;
+  justify-content: center;
+  font-family: "Work Sans";
+}
+
+.timer {
+  font-family: "Work Sans";
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.text {
+  color: #aaa;
+  font-family: "Work Sans";
+}
+
+.value {
+  font-size: 40px;
+  font-family: "Work Sans";
+}
+
+.info {
+  max-width: 360px;
+  margin: 40px auto 0;
+  text-align: center;
+  font-size: 16px;
+  font-family: "Work Sans";
+}

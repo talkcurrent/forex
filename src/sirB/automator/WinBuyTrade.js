@@ -1,12 +1,9 @@
 import { updateDoc } from "@firebase/firestore";
 import FullDateTime from "../reuseables/FullDateTime";
-import { randNumWitRange } from "../reuseables/randNumWitRange";
 import RoundTo from "../reuseables/RoundTo";
 
-const WinBuyTrade = (docRef, percentOfAmount, current_price, traderDoc, userRef) => {
+const WinBuyTrade = (docRef, percentOfAmount, current_price, traderDoc, userRef, toAdd) => {
     
-  const toAdd = randNumWitRange(30)
-
   updateDoc(docRef, {
     addition: percentOfAmount,
     settleTime: FullDateTime(),

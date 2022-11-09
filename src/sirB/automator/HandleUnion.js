@@ -1,8 +1,6 @@
 import { doc, getDocs, getFirestore, query, where } from "@firebase/firestore";
 import CoinAPI from "../reuseables/CoinAPI";
 import CollectionRef from "../reuseables/CollectionRef";
-import FullDateTime from "../reuseables/FullDateTime";
-import getPercentage from "../reuseables/getPercentage";
 import { randNumWitRange } from "../reuseables/randNumWitRange";
 import RoundTo from "../reuseables/RoundTo";
 import LostBuyTrade from "./LostBuyTrade";
@@ -28,7 +26,7 @@ const HandleUnion = async (unionID) => {
     
     const unions = await getDocs(q);
     if(unions.size){
-        
+        const toAdd = randNumWitRange(30)
         unions.forEach(union => {
             const {amount_traded, percent ,docID ,position } = union.data();
             
@@ -39,15 +37,15 @@ const HandleUnion = async (unionID) => {
             
             if(decider == 0){
                 if(position == "Buy"){
-                    LostBuyTrade(docRef, addition, current_price, union, userRef)
+                    LostBuyTrade(docRef, addition, current_price, union.data(), userRef, toAdd)
                 }else{
-                    WinSellTrade(docRef, percentOfAmount, current_price, union, userRef)
+                    WinSellTrade(docRef, percentOfAmount, current_price, union.data(), userRef, toAdd)
                 }
             }else{
                 if(position == "Buy"){
-                    WinBuyTrade(docRef, percentOfAmount, current_price, union, userRef)
+                    WinBuyTrade(docRef, percentOfAmount, current_price, union.data(), userRef, toAdd)
                 }else{
-                    LostBuyTrade(docRef, addition, current_price, union, userRef)
+                    LostSellTrade(docRef, addition, current_price, union.data(), userRef, toAdd)
                 }
             }
         });

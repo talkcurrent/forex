@@ -6,6 +6,7 @@ import LostBuyTrade from "./LostBuyTrade";
 import LostSellTrade from "./LostSellTrade";
 import WinBuyTrade from "./WinBuyTrade";
 import WinSellTrade from "./WinSellTrade";
+import { randNumWitRange } from "../reuseables/randNumWitRange";
 
 /**
  * Handles each trade outcome
@@ -50,21 +51,21 @@ const Determinant = async (docId, traderDoc) => {
   const docRef = doc(db, "requests", docId);
   const userRef = doc(db, "users", traderDoc.docID);
 
-  const isUnion = Boolean(traderDoc.union);
+  const toAdd = randNumWitRange(30)
 
   if (winPercentage >= 20) {
     // Update loss here
     if(traderDoc.position == "Buy"){
-      LostBuyTrade(docRef, addition, current_price, traderDoc, userRef)
+      LostBuyTrade(docRef, addition, current_price, traderDoc, userRef, toAdd)
     }else{
-      LostSellTrade(docRef, addition, current_price, traderDoc, userRef)
+      LostSellTrade(docRef, addition, current_price, traderDoc, userRef, toAdd)
     }
   }else{
     // Update win here
     if(traderDoc.position == "Buy"){
-      WinBuyTrade(docRef, percentOfAmount, current_price, traderDoc, userRef)
+      WinBuyTrade(docRef, percentOfAmount, current_price, traderDoc, userRef, toAdd)
     }else{
-      WinSellTrade(docRef, percentOfAmount, current_price, traderDoc, userRef)
+      WinSellTrade(docRef, percentOfAmount, current_price, traderDoc, userRef, toAdd)
     }
   }
 

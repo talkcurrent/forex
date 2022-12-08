@@ -2,15 +2,15 @@ import { updateDoc } from "@firebase/firestore";
 import FullDateTime from "../reuseables/FullDateTime";
 import RoundTo from "../reuseables/RoundTo";
 
-const LostSellTrade = (docRef, addition, current_price, traderDoc, userRef, toAdd) => {
+const LostSellTrade = (docRef, addition, entryPrice, settlePrice, traderDoc, userRef) => {
 
     updateDoc(docRef, {
         settleTime: FullDateTime(),
         addition: addition,
-        entryPrice: RoundTo(current_price, 2),
+        entryPrice: entryPrice,
         outcome: "Lost",
         status: "done",
-        settlePrice: RoundTo((current_price + toAdd), 2),
+        settlePrice: settlePrice,
       }).then(async () => {
         if (traderDoc.trader_balance === 0) {
           await updateDoc(userRef, {

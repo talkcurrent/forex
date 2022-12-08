@@ -1,14 +1,9 @@
 import Determinant from "./Determinant";
-import HandleUnion from "./HandleUnion";
 
 const AutomationHandler = async (expiredTrades) => {
 
     expiredTrades.forEach((doc) => {
-        if(doc.union == true){
-            HandleUnion(doc.unionID)
-        }else{
-            Determinant(doc.id, doc)
-        }
+        Determinant(doc.id, doc)
     });
 }
 

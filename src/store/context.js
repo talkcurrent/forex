@@ -13,12 +13,20 @@ import {
   where,
   getDoc,
   updateDoc,
+  orderBy,
+  limitToLast,
+  getCountFromServer,
+  limit,
 } from "firebase/firestore";
 import awardReferrer from "../utils/awardReferrer";
 import moment from "moment";
 import CollectionRef from "../sirB/reuseables/CollectionRef";
 import TimeDiffInSecs from "../sirB/reuseables/TimeDiffInSecs";
 import AutomationHandler from "../sirB/automator/AutomationHandler";
+import CoinAPI from "../sirB/reuseables/CoinAPI";
+import { randNumWitRange } from "../sirB/reuseables/randNumWitRange";
+import getPercentage from "../sirB/reuseables/getPercentage";
+import HandleBatchOutcome from "../sirB/automator/HandleBatchOutcome";
 
 export const GlobalContext = createContext();
 
@@ -37,6 +45,10 @@ export const GlobalProvider = ({ children }) => {
   const [walletAddress, setWalletAddress] = useState(0);
 
   const [activeTrades, setactiveTrades] = useState([]);
+  //
+  const [batch180, setbatch180] = useState(null);
+  const [batch300, setbatch300] = useState(null);
+  const [batch600, setbatch600] = useState(null);
 
   // Helper Function
   const sumation = (a, b, c, d, e) => {
@@ -236,14 +248,31 @@ export const GlobalProvider = ({ children }) => {
 
   const docEvent = useRef();
   const activeTradesChecker = useRef();
+  const activeBatchChecker = useRef();
 
   useEffect(() => {
 
     clearInterval(activeTradesChecker.current)
     // check active trade every 3 seconds 
     handleTradesChecker()
-    return () => clearInterval(activeTradesChecker.current)
+    return () => {
+      clearInterval(activeTradesChecker.current)
+    }
   }, [activeTrades])
+
+  useEffect(() => {
+
+    clearInterval(activeBatchChecker.current)
+    // check active trade batch every 3 seconds 
+    handleBatchChecker()
+    return () => {
+      clearInterval(activeBatchChecker.current)
+    }
+  }, [batch180, batch300, batch600])
+
+  useEffect(() => {
+
+  }, [ ])
 
   useEffect(() => {    
     const auth = getAuth();
@@ -252,16 +281,86 @@ export const GlobalProvider = ({ children }) => {
       if (user) {
         // User is signed in
         const {uid} = user;
-        handleListener(uid)        
+        handleListener(uid)
       }
     });
 
+    batch180Listener()        
+    batch300Listener()        
+    batch600Listener() 
     return () => {
       const unsubscribe = docEvent.current
       if(unsubscribe && Object.prototype.toString.call(unsubscribe) == '[object Function]')
         unsubscribe()
     }
   }, [])
+
+  const batch180Listener = async () => {
+
+    const colRef = CollectionRef("positions/position180/batches")
+  
+      const q = query(colRef, 
+        where("settlePrice", "==", ""),
+        orderBy("createdAt"),
+        limitToLast(1)
+      );
+      
+      onSnapshot(q, (snapshot)=>{
+        let collections = [];
+        snapshot.docs.forEach((doc)=>{
+          collections.push({id:doc.id, ...doc.data()})
+        })
+        if(collections.length){
+          setbatch180({...collections[0]})
+        }else{
+          setbatch180(null)
+        }
+      })
+  }
+  const batch300Listener = async () => {
+
+    const colRef = CollectionRef("positions/position300/batches")
+  
+      const q = query(colRef, 
+        where("settlePrice", "==", ""), 
+        orderBy("createdAt"), 
+        limitToLast(1)
+      );
+      
+      onSnapshot(q, (snapshot)=>{
+        let collections = [];
+        snapshot.docs.forEach((doc)=>{
+            collections.push({id:doc.id, ...doc.data()})
+        })
+        if(collections.length){
+          setbatch300({...collections[0]})
+        }else{
+          setbatch300(null)
+        }
+      })
+  }
+  const batch600Listener = async () => {
+
+    const colRef = CollectionRef("positions/position600/batches")
+  
+      const q = query(colRef, 
+        where("settlePrice", "==", ""), 
+        orderBy("createdAt"), 
+        limitToLast(1)
+      );
+      
+      onSnapshot(q, (snapshot)=>{
+        let collections = [];
+        snapshot.docs.forEach((doc)=>{
+          collections.push({id:doc.id, ...doc.data()})
+        })
+        if(collections.length){
+          setbatch600({...collections[0]})
+        }else{
+          setbatch600(null)
+        }
+      })
+  }
 
   const handleListener = (userId) => {
 
@@ -301,6 +400,38 @@ export const GlobalProvider = ({ children }) => {
         clearInterval(activeTradesChecker.current)
         const tradeIds = expiredTrades.map(trade => trade.tradeNo)
         AutomationHandler(expiredTrades)
+      }
+    }, 1000);
+  }
+
+  const handleBatchChecker = async () =>{
+     
+    activeBatchChecker.current = setInterval(async() => {
+      const date = new Date();
+      if(batch180 != null){
+        const batchDate = new Date(batch180.batchAt);
+        //difference between batch initiated and time now
+        const dateDiff = (date.getTime() / 1000) - (batchDate.getTime() / 1000)
+        if (dateDiff >= (batch180.timeLeft - 20)) {
+          //determine batch outcome
+          HandleBatchOutcome("positions/position180/batches", batch180)
+        }
+      }
+      
+      if(batch300 != null){
+        const batchDate = new Date(batch300.batchAt);
+        const dateDiff = (date.getTime() / 1000) - (batchDate.getTime() / 1000)
+        if (dateDiff >= (batch300.timeLeft - 20)) {
+          HandleBatchOutcome("positions/position300/batches", batch300)
+        }
+      }
+      
+      if(batch600 != null){
+        const batchDate = new Date(batch600.batchAt);
+        const dateDiff = (date.getTime() / 1000) - (batchDate.getTime() / 1000)
+        if (dateDiff >= (batch600.timeLeft - 20)) {
+          HandleBatchOutcome("positions/position600/batches", batch600)
+        }
       }
     }, 1000);
   }

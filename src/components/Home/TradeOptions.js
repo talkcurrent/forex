@@ -11,6 +11,9 @@ import {
   serverTimestamp,
   where,
   updateDoc,
+  limitToLast,
+  getDoc,
+  getCountFromServer,
 } from "firebase/firestore";
 import Moment from "moment";
 import React, { useContext, useEffect, useRef, useState } from "react";
@@ -32,6 +35,7 @@ import FullDateTime from "../../sirB/reuseables/FullDateTime";
 import RandomStr from "../../sirB/reuseables/RandomStr";
 import CollectionRef from "../../sirB/reuseables/CollectionRef";
 import { getAuth, onAuthStateChanged } from "@firebase/auth";
+import getBatchID from "../../sirB/reuseables/getBatchID";
 
 const primaryColor = "#F0B90B";
 const primaryColorDark = "#393091";
@@ -389,8 +393,15 @@ const TradeOptions = () => {
   const handleBuyTimerCountDown = async () => {
     const tradeNo = randomStr(15, "12345abcde")
 
-     //if there is any undecided outcome of same trade  
-      //and of opposite position update union field true for both
+    const docPath = selectedTimeInterval == 180?
+      "positions/position180/batches"
+        :selectedTimeInterval == 300? 
+          "positions/position300/batches" : "positions/position600/batches"
+
+    const { batchID } = await getBatchID(docPath, timeLeft);
+      //if there is any undecided outcome of same trade
+      //and of opposite position, update union field true for both
+
       const colRef = CollectionRef("requests")
       const q = query( 
         colRef, 
@@ -458,7 +469,8 @@ const TradeOptions = () => {
         union: unionTrade.size? true : false,
         unionID: unionTrade.size? unionID : "",
         timeLeft: timeLeft,
-        currentBtcPrice,
+        batchID, batchID,
+        currentBtcPrice: currentBtcPrice,
         secondsPicked: selectedTimeInterval,
         trader_bonus: userData.bonus,
         docID: userData.docID,
@@ -489,6 +501,12 @@ const TradeOptions = () => {
 
   const handleSellTimerCountDown = async () => {
     const tradeNo = randomStr(15, "12345abcde")
+    const docPath = selectedTimeInterval == 180?
+      "positions/position180/batches"
+        :selectedTimeInterval == 300? 
+          "positions/position300/batches" : "positions/position600/batches"
+
+    const { batchID } = await getBatchID(docPath, timeLeft)
     //if there is any undecided outcome of same trade  
       //and of opposite position update union field true for both
       const colRef = CollectionRef("requests")
@@ -557,7 +575,8 @@ const TradeOptions = () => {
         union: unionTrade.size? true : false,
         unionID: unionTrade.size? unionID : "",
         timeLeft: timeLeft,
-        currentBtcPrice,
+        batchID: batchID,
+        currentBtcPrice: currentBtcPrice,
         secondsPicked: selectedTimeInterval,
         trader_bonus: userData.bonus,
         docID: userData.docID,

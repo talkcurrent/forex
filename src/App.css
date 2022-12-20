@@ -1130,4 +1130,13 @@ e{
     text-align: left;
     color:#bbb;
   }
+
+  .laverage-key{
+    cursor: pointer;
+    transition: all ease-in-out .2s;
+  }
+  .laverage-key:hover{
+    background-color: #50a79b;
+    color: white;
+  }
 } 

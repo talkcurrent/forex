@@ -22,7 +22,7 @@ import {
   MdOutlineVisibility,
   MdOutlineVisibilityOff,
 } from "react-icons/md";
-import { BsFillInfoCircleFill, BsBackspace } from "react-icons/bs";
+import { BsFillInfoCircleFill, BsBackspace, BsFillCaretDownFill, BsFillCaretUpFill } from "react-icons/bs";
 import { Link, useNavigate } from "react-router-dom";
 import pana from "../../assets/pana.png";
 import { GlobalContext } from "../../store/context";
@@ -275,6 +275,13 @@ const TradeOptions = () => {
   const [errors, setErrors] = useState(null);
   const { user, darkTheme, setRoute} = useContext(GlobalContext);
   const [cycle, setCycle] = useState(30);
+  //sirb
+  const [tooltipBtnParams, settooltipBtnParams] = useState(null);
+  const [laverageTooltip, setlaverageTooltip] = useState(false);
+  const [laverage, setlaverage] = useState({active: "", amount: ""});
+  const [laverageKeys, setlaverageKeys] = useState([
+    "1X", "2X", "3X", "4X", "5X", "6X", "7X", "8X"
+  ]);
   
   const navigate = useNavigate();
 
@@ -303,7 +310,19 @@ const TradeOptions = () => {
     };
   }, [windowDimenion]);
 
+  useEffect(() => {
+    if (laverageTooltip) {
+        document.addEventListener('scroll', updateElemParams, true);
+    }
+    return () => {
+        document.removeEventListener('scroll', updateElemParams, true);
+    };
+  }, [laverageTooltip]);
+
   const timeInterval = useRef();
+  //sirb
+  const tooltipBtn = useRef();
+  const tooltipCont = useRef();
 
   useEffect(() => {
     if (selectedTimeInterval) {
@@ -344,6 +363,25 @@ const TradeOptions = () => {
       setPause(false);
     }
   }, [timeLeft]);
+
+  //sirb
+  const updateElemParams = () => {
+    // run update on button position to readjust tooltip but only when button tooltip is active
+    const params = tooltipBtn.current.getBoundingClientRect();
+    console.log(params)
+    settooltipBtnParams(params);
+  };
+
+  const handleToolTip = (event) => {
+    const params = event.target.getBoundingClientRect();
+    settooltipBtnParams(params);
+    setlaverageTooltip(!laverageTooltip);
+  };
+  const handleLaverageKey = (key) => {
+    setlaverage({...laverage, active: key})
+    
+    console.log(key)
+  };
 
   const handleTarget = (e) => {
     let target = e.target.innerText;
@@ -769,9 +807,52 @@ const TradeOptions = () => {
         <div
           className={classes.balRight}
           style={{
+            justifyContent: "space-evenly",
             background: darkTheme === false ? "#f5f5f5" : textInputDark,
           }}
         >
+          <div style={{display: "flex", alignItems: "center", position: "relative"}}>
+            <div ref={tooltipBtn} style={{lineHeight: 1}}>
+              {laverageTooltip?
+                <BsFillCaretUpFill
+                  title={"Laverage"} 
+                  onClick={handleToolTip}
+                />
+              :
+                <BsFillCaretDownFill 
+                  title={"Laverage"} 
+                  onClick={handleToolTip}
+                />
+              }
+              <div style={{lineHeight: 0}}><small>{laverage.active}</small></div>
+            </div>
+            {laverageTooltip?
+              <div 
+                ref={tooltipCont}
+                style={{
+                  width: 40,
+                  background: "white",
+                  boxShadow: "0px 0px 8px 1px #e4e2f1",
+                  fontWeight: 500,
+                  borderRadius: 5,
+                  color: "#434651",
+                  display: "grid",
+                  gap: "1rem",
+                  position: "fixed",
+                  left: `${(tooltipBtnParams.left + (tooltipBtnParams.width / 2)-20)}px`,
+                  bottom: `${(window.innerHeight - tooltipBtnParams.bottom) + (tooltipBtnParams.height + 5) }px`,
+                }}
+              >
+                {laverageKeys.map((val, index)=>{
+                  return <p 
+                      className="laverage-key" 
+                      key={index} 
+                      onClick={ (e) => handleLaverageKey(val) }
+                    >{val}</p>
+                })}
+              </div>
+            :""}
+          </div>
           <input
             style={{
               border: "none",

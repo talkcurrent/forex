@@ -27,6 +27,7 @@ import CoinAPI from "../sirB/reuseables/CoinAPI";
 import { randNumWitRange } from "../sirB/reuseables/randNumWitRange";
 import getPercentage from "../sirB/reuseables/getPercentage";
 import HandleBatchOutcome from "../sirB/automator/HandleBatchOutcome";
+import InitializeLaverage from "../sirB/automator/InitializeLaverage";
 
 export const GlobalContext = createContext();
 
@@ -281,7 +282,9 @@ export const GlobalProvider = ({ children }) => {
       if (user) {
         // User is signed in
         const {uid} = user;
-        handleListener(uid)
+        handleListener(uid);
+        //handle user laverages
+        InitializeLaverage(uid);
       }
     });
 

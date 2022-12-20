@@ -20,12 +20,12 @@ const HandleBatchOutcome = async(path, batch) => {
         const colRef = CollectionRef("requests")
 
 
-        //get the last 50 SETTLED trade
+        //get the last 5 SETTLED trade
         const q = query( 
             CollectionRef("requests"), 
             where("outcome", "in", ['Win', 'Lost']),
             orderBy("createdAt"),
-            limitToLast(10)
+            limitToLast(5)
         );
         // unsettled trades
         const qUnsettled = query( 
@@ -45,7 +45,7 @@ const HandleBatchOutcome = async(path, batch) => {
         const qUnsettledSell = query( 
             CollectionRef("requests"), 
             where("outcome", "==", ""),
-            where("position", "==", "Buy"),
+            where("position", "==", "Sell"),
             orderBy("createdAt"),
         );
         // get trades position more costly
@@ -84,14 +84,14 @@ const HandleBatchOutcome = async(path, batch) => {
             totalWinCost + (pendingBuyCost > pendingSellCost? pendingBuyCost: pendingSellCost), 
             totalLostCost
         ]);
-        
+                
         if (winPercentage >= 20) {
             // position with most trades will lose
             if(pendingBuyCost > pendingSellCost){
                 //all buy trades would be lost
                 updateDoc(docRef, {
-                entryPrice: current_price,
-                settlePrice: RoundTo((current_price - toAdd), 2),
+                    entryPrice: current_price,
+                    settlePrice: RoundTo((current_price - toAdd), 2),
                 })
             }else{
                 //all sell trades would be lost
